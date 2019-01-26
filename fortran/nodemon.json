@@ -1,0 +1,5 @@
+{
+    "verbose": false,
+    "exec": "./go.sh",
+    "ext": "f,f90"
+}
