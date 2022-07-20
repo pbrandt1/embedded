@@ -42,7 +42,7 @@ typedef enum RBUF_STATUS {
  * @return true 
  * @return false 
  */
-bool rbuf_is_empty(rbuf* rb) {
+static bool rbuf_is_empty(rbuf* rb) {
     return rb->count == 0;
 }
 
@@ -55,7 +55,7 @@ bool rbuf_is_empty(rbuf* rb) {
  * @return true 
  * @return false 
  */
-bool rbuf_is_full(rbuf* rb) {
+static bool rbuf_is_full(rbuf* rb) {
     return rb->count >= rb->length;
     // return (rb->front == rb->back - 1) || ( (rb->back == rb->length - 1) && ( rb->front == 0 ) );
 }
@@ -67,7 +67,7 @@ bool rbuf_is_full(rbuf* rb) {
  * @param obj 
  * @return RBUF_STATUS 
  */
-RBUF_STATUS rbuf_push_back(rbuf* rb, void* obj) {
+static RBUF_STATUS rbuf_push_back(rbuf* rb, void* obj) {
     RBUF_STATUS ret = RBUF_ERROR;
 
     if (rb == 0) {
@@ -78,16 +78,20 @@ RBUF_STATUS rbuf_push_back(rbuf* rb, void* obj) {
         ret = RBUF_BUFFER_FULL;
     } else {
 
-        u32 next;
+        i32 next;
         if (rb->back == rb->length - 1) {
-            next = 0;
+            next = -rb->back;
         } else {
-            next = rb->back + 1;
+            next = 1;
         }
 
         memcpy(rb->buf + rb->back * rb->obj_size, obj, rb->obj_size);
-        rb->back = next;
-        ++rb->count;
+        
+        // rb->back = next;
+        __atomic_fetch_add(&(rb->back), next, __ATOMIC_SEQ_CST);
+
+        // rb->count++;
+        __atomic_fetch_add(&(rb->count), 1, __ATOMIC_SEQ_CST);
         ret = RBUF_OK;
     }
 
@@ -101,7 +105,7 @@ RBUF_STATUS rbuf_push_back(rbuf* rb, void* obj) {
  * @param obj 
  * @return RBUF_STATUS 
  */
-RBUF_STATUS rbuf_pop_front(rbuf* rb, void* obj) {
+static RBUF_STATUS rbuf_pop_front(rbuf* rb, void* obj) {
     RBUF_STATUS ret = RBUF_ERROR;
 
     if (rb == 0) {
@@ -130,7 +134,7 @@ RBUF_STATUS rbuf_pop_front(rbuf* rb, void* obj) {
     return ret;
 }
 
-void rbuf_hexdump(rbuf* rb) {
+static void rbuf_hexdump(rbuf* rb) {
     printf("length: %d, obj_size: %ld, front: %d, back: %d, count: %d\n", rb->length, rb->obj_size, rb->front, rb->back, rb->count);
     for (u32 i = 0; i < rb->length; ++i) {
         printf("%2d|", i);

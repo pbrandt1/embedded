@@ -11,8 +11,8 @@ fi
 
 # build everything, exit on any error
 set -e
-gcc test.c -o test
-gcc atomic-test.c -o atomic-test -pthread
+clang test.c -o test
+clang atomic-test.c -o atomic-test -pthread
 
 BOLD_RED='\x1B[1;31m'
 BOLD_YELLOW='\x1B[1;33m'
